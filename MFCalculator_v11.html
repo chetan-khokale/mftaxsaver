@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TaxFortify - Tax Harvesting Engine</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+        }
+        .form-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .form-container form {
+            margin: 20px auto;
+            max-width: 400px;
+            padding: 20px;
+            background-color: #f3f3f3;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+       
+
+        label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .slider-container {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+        }
+
+        #result {
+            margin: 20px auto;
+            max-width: 800px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5">TaxFortify - Tax Harvesting Engine</h1>
+        <div class="form-container">
+        <form id="interestForm1">
+            <div class="form-group">
+                <label for="initialAmount">
+                    Initial Amount:
+                    <span id="initialAmountValue">₹0</span>
+                </label>
+                <div class="slider-container">
+                    <input type="range" id="initialAmount" min="0" max="1000000" step="10000" data-highlight="true" data-show-value="true" value="0">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="years">
+                    Number of Years:
+                    <span id="yearsValue">0</span>
+                </label>
+                <div class="slider-container">
+                    <input type="range" id="years" min="0" max="30" data-highlight="true" data-show-value="true" value="1">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="interestRate">
+                    Rate of Interest:
+                    <span id="interestRateValue">0</span>
+                </label>
+                <div class="slider-container">
+                    <input type="range" id="interestRate" min="0" max="30" step="1" data-highlight="true" data-show-value="true" value="0">
+                </div>
+            </div>
+
+            <button type="button" class="btn btn-primary" onclick="calculateInterest()">Calculate</button>
+        </form>
+        <form id="interestForm2">
+            <div class="form-group">  <canvas id="donutChart" width="400" height="400"></canvas></div>
+            </form>
+        </div>  
+        <div id="result" class="mt-4">
+            <!-- Result will be displayed here as a table -->
+			   
+        </div>
+    </div>
+    
+    <script>
+        $(function() {
+            // Initialize jQuery Mobile sliders
+            $("#initialAmount").slider();
+            $("#years").slider();
+            $("#interestRate").slider();
+
+            // Update slider values next to labels
+            $("#initialAmount").on("input", function() {
+                $("#initialAmountValue").text("₹" + $(this).val());
+            });
+
+            $("#years").on("input", function() {
+                $("#yearsValue").text($(this).val());
+            });
+
+            $("#interestRate").on("input", function() {
+                $("#interestRateValue").text($(this).val());
+            });
+               
+          
+        });
+
+       
+      	
+       function calculateInterest() {
+            const initialAmount = parseFloat(document.getElementById('initialAmount').value);
+            const years = parseInt(document.getElementById('years').value);
+            var interestRate = parseFloat(document.getElementById('interestRate').value); // Rate of Interest
+            interestRate = interestRate / 100;
+
+            const exepmtedAmount = 100000;
+
+            let currentAmount = initialAmount;
+            let resultHTML = '<h2 class="mb-3">Yearly Amounts:</h2>';
+            resultHTML += '<table class="table table-bordered"><thead><tr><th>Year</th><th>Initial Amount Invested</th><th>Total Value After Year</th><th>Capital Gain/Profit</th><th>Tax Applied</th></tr></thead><tbody>';
+            let totalTaxAppliedTaxFortify = 0;
+            for (let year = 1; year <= years; year++) {
+                const interestEarned = currentAmount * interestRate;
+                const remainingPrincipal = (interestEarned - exepmtedAmount) * (10 / 100);
+                currentAmount += interestEarned;
+                const taxApplied = Math.max(0, remainingPrincipal);
+                const initialAmountInvested = currentAmount - interestEarned;
+                if (taxApplied >= 0) {
+				 totalTaxAppliedTaxFortify += taxApplied;
+                 const formattedInitialAmountInvested = initialAmountInvested.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+        const formattedCurrentAmount = currentAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+        const formattedInterestEarned = interestEarned.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+        const formattedTaxApplied = taxApplied.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+                    resultHTML += `<tr><td>${year}</td><td>₹${formattedInitialAmountInvested}</td><td>₹${formattedCurrentAmount}</td><td>₹${formattedInterestEarned}</td><td>₹${formattedTaxApplied}</td></tr>`;
+                }
+            }
+
+            resultHTML += '</tbody></table>';
+			
+         
+            
+     
+      
+            // Calculate and add the total sum
+            let totalSum = (initialAmount * Math.pow((1 + interestRate), years));
+            const formattedtotalSum = totalSum.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+            resultHTML += `<p class="mt-4">Total Amount after ${years} years: ₹${formattedtotalSum}</p>`;
+
+            let capitalgain = (totalSum - initialAmount);
+            const formattedcapitalgain = capitalgain.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+            resultHTML += `<p class="mt-4">Capital Gain/Profit after ${years} years: ₹${formattedcapitalgain}</p>`;
+
+            // Calculate Tax applied when invested with Standard approach
+            let taxAppliedStandard = ((capitalgain - 100000) * 0.1);            
+            const formattedtaxAppliedStandard = taxAppliedStandard.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+            resultHTML += `<p class="mt-4">Tax applied when invested with Standard approach: ₹${formattedtaxAppliedStandard}</p>`;
+
+            // Calculate Tax applied when invested with TaxFortify        
+            totalTaxAppliedTaxFortify = totalTaxAppliedTaxFortify;
+
+            const formattedtotalTaxAppliedTaxFortify= totalTaxAppliedTaxFortify.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+            resultHTML += `<p class="mt-4">Tax applied when invested with TaxFortify: ₹${formattedtotalTaxAppliedTaxFortify}</p>`;
+
+            document.getElementById('result').innerHTML = resultHTML;
+			
+            // Call the createDonutChart function with the tax values
+           createDonutChart(totalTaxAppliedTaxFortify, taxAppliedStandard);
+		  			
+        }
+
+        // Function to create the donut chart
+        function createDonutChart(taxAppliedTaxFortify, taxAppliedStandard) {
+            var ctx = document.getElementById("donutChart").getContext("2d");
+            var myChart = new Chart(ctx, {
+                type: "doughnut",
+                data: {
+                    labels: ["Tax applied when invested with TaxFortify", "Tax applied when invested with Standard approach"],
+                    datasets: [
+                        {
+                            data: [taxAppliedTaxFortify, taxAppliedStandard],
+                            backgroundColor: ["#007BFF", "#FF5733"],
+                        },
+                    ],
+                },
+            });
+        }
+         
+    </script>
+</body>
+</html>
